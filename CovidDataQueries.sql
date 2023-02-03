@@ -1,82 +1,62 @@
-select *
-from Portfolio_Project..CovidDeaths
-order by 3,4
+-- SELECTING ALL COLUMNS FROM THE COVIDDEATHS TABLE AND ORDERING BY LOCATION AND DATE
 
---select *
---From PortfolioProject..CovidVaccinations
---order by 3,4
+SELECT Location, date, total_cases, new_cases, total_deaths, population
+FROM Portfolio_Project..CovidDeaths
+ORDER BY Location, date;
 
-select Location, date, total_cases, new_cases, total_deaths, population
-from Portfolio_Project..CovidDeaths
-order by 1,2
+-- CALCULATING THE DEATH PERCENTAGE FROM TOTAL CASES AND TOTAL DEATHS
 
--- Total Cases vs Total Deaths
--- Shows the likelihood of dying if infected by COVID
+SELECT Location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 AS DeathPercentage
+FROM Portfolio_Project..CovidDeaths
+WHERE Location LIKE '%Canada%'
+ORDER BY Location, date;
 
-select Location, date, total_cases, total_deaths, (total_deaths/total_cases)*100 as DeathPercentage
-from Portfolio_Project..CovidDeaths
-Where location like '%Canada%'
-order by 1,2
+-- CALCULATING THE PERCENTAGE OF THE POPULATION THAT WAS INFECTED WITH COVID
 
---Looking at Total Cases vs Population
---Shows what percentage of population got COVID
+SELECT Location, date, population, total_cases, (total_cases/population)*100 AS PercentagePopulationInfected
+FROM Portfolio_Project..CovidDeaths
+WHERE Location LIKE '%Canada%'
+ORDER BY Location, date;
 
-select Location, date, population, total_cases, (total_cases/population)*100 as PercentagePopulationInfected
-from Portfolio_Project..CovidDeaths
-Where location like '%Canada%'
-order by 1,2
+-- FINDING THE COUNTRIES WITH THE HIGHEST INFECTION RATE COMPARED TO POPULATION
 
---Looking at countries with highest infection rate compared to population
+SELECT Location, population, MAX(total_cases) AS HighestInfectionCount, (MAX(total_cases)/population)*100 AS PercentagePopulationInfected
+FROM Portfolio_Project..CovidDeaths
+GROUP BY Location, population
+ORDER BY PercentagePopulationInfected DESC;
 
-select Location, population, MAX(total_cases) as HighestInfectionCount, (MAX(total_cases)/population)*100 as PercentagePopulationInfected
-from Portfolio_Project..CovidDeaths
-Group by Location, Population
-order by PercentagePopulationInfected desc
- 
---Showing countries with highest death count per population
+-- FINDING THE COUNTRIES WITH THE HIGHEST DEATH COUNT PER POPULATION
 
-select Location, MAX(cast(total_deaths as float)) as TotalDeathCount
-from Portfolio_Project..CovidDeaths
-Where continent is not NULL
-Group by Location
-order by TotalDeathCount desc
+SELECT Location, MAX(CAST(total_deaths AS FLOAT)) AS TotalDeathCount
+FROM Portfolio_Project..CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY Location
+ORDER BY TotalDeathCount DESC;
 
---By continents 
+-- FINDING THE CONTINENTS WITH THE HIGHEST DEATH COUNT PER POPULATION
 
--- Showing contintents with the highest death count per population
+SELECT continent, MAX(CAST(Total_deaths AS FLOAT)) AS TotalDeathCount
+FROM Portfolio_Project..CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY continent
+ORDER BY TotalDeathCount DESC;
 
-Select continent, MAX(cast(Total_deaths as float)) as TotalDeathCount
-From Portfolio_Project..CovidDeaths
---Where location like '%Canada%'
-Where continent is not null 
-Group by continent
-order by TotalDeathCount desc
+-- GLOBAL NUMBERS FOR NEW CASES, NEW DEATHS, AND DEATH PERCENTAGE
 
+SELECT SUM(new_cases) AS total_cases, SUM(CAST(new_deaths AS INT)) AS total_deaths, SUM(CAST(new_deaths AS INT))/SUM(New_Cases)*100 AS DeathPercentage
+FROM Portfolio_Project..CovidDeaths
+WHERE continent IS NOT NULL;
 
+-- NUMBERS BY DATE FOR NEW CASES, NEW DEATHS, AND DEATH PERCENTAGE
 
--- GLOBAL NUMBERS
+SELECT date, SUM(new_cases) AS total_cases, SUM(CAST(new_deaths AS INT)) AS total_deaths, SUM(CAST(new_deaths AS INT))/SUM(New_Cases)*100 AS DeathPercentage
+FROM Portfolio_Project..CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY date
+ORDER BY date;
 
-Select SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
-From Portfolio_Project..CovidDeaths
---Where location like '%Canada%'
-where continent is not null 
---Group By date
-order by 1,2
-
---by date
-
-Select date, SUM(new_cases) as total_cases, SUM(cast(new_deaths as int)) as total_deaths, SUM(cast(new_deaths as int))/SUM(New_Cases)*100 as DeathPercentage
-From Portfolio_Project..CovidDeaths
---Where location like '%Canada%'
-where continent is not null 
-Group By date
-order by 1,2
-
-
-
-
--- Total Population vs Vaccinations
--- Shows Percentage of Population that has recieved at least one Covid Vaccine
+-- TOTAL POPULATION VS VACCINATIONS
+-- CALCULATING THE PERCENTAGE OF THE POPULATION THAT HAS RECEIVED AT LEAST ONE COVID VACCINE
 
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations, 
 SUM(CONVERT(int, vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
