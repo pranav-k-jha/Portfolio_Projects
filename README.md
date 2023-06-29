@@ -5,4 +5,4 @@ Project
 2. Nashville Hoousing Data Cleaning in SQL
 2. Movies Correlation Data Analysis in Jupyter Notebook using Python 
 
-Copyright@PranavKJha
+Copyright 2023 @PranavKJha
